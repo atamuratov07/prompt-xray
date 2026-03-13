@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { X, Clipboard } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface PromptInputProps {
   value: string
@@ -18,6 +19,7 @@ export function PromptInput({
   disabled,
   maxLength = 5000,
 }: PromptInputProps) {
+  const t = useTranslations('PromptInput')
   const [isFocused, setIsFocused] = useState(false)
 
   const handlePaste = useCallback(async () => {
@@ -37,7 +39,7 @@ export function PromptInput({
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-muted-foreground">
-          Enter Your Prompt
+          {t('label')}
         </label>
         <div className="flex items-center gap-2">
           <Button
@@ -49,7 +51,7 @@ export function PromptInput({
             className="h-7 text-xs text-muted-foreground hover:text-foreground"
           >
             <Clipboard className="mr-1 h-3 w-3" />
-            Paste
+            {t('paste')}
           </Button>
           {value && (
             <Button
@@ -61,7 +63,7 @@ export function PromptInput({
               className="h-7 text-xs text-muted-foreground hover:text-foreground"
             >
               <X className="mr-1 h-3 w-3" />
-              Clear
+              {t('clear')}
             </Button>
           )}
         </div>
@@ -77,17 +79,20 @@ export function PromptInput({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           disabled={disabled}
-          placeholder="Paste or type the prompt you want to analyze..."
+          placeholder={t('placeholder')}
           className="min-h-[180px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
           maxLength={maxLength}
         />
         <div className="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground">
           <span>
-            {value.length.toLocaleString()} / {maxLength.toLocaleString()} characters
+            {t('count', {
+              current: value.length.toLocaleString(),
+              max: maxLength.toLocaleString(),
+            })}
           </span>
           {value.length > 0 && (
             <span className="text-muted-foreground">
-              ~{Math.ceil(value.length / 4)} tokens
+              {t('tokens', {count: Math.ceil(value.length / 4)})}
             </span>
           )}
         </div>

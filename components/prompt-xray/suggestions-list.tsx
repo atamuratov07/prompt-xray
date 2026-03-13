@@ -1,19 +1,21 @@
 'use client'
 
 import { Lightbulb, CheckCircle2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface SuggestionsListProps {
   suggestions: string[]
 }
 
 export function SuggestionsList({ suggestions }: SuggestionsListProps) {
+  const t = useTranslations('SuggestionsList')
   if (!suggestions.length) return null
 
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <Lightbulb className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-foreground">Suggestions</h3>
+        <h3 className="font-semibold text-foreground">{t('title')}</h3>
       </div>
       <ul className="space-y-2">
         {suggestions.map((suggestion, i) => (

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Check, Copy, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface RewritePanelProps {
   original: string
@@ -12,6 +13,7 @@ interface RewritePanelProps {
 }
 
 export function RewritePanel({ original, rewritten, rewriteType }: RewritePanelProps) {
+  const t = useTranslations('RewritePanel')
   const [copied, setCopied] = useState(false)
   const [showComparison, setShowComparison] = useState(false)
 
@@ -22,18 +24,18 @@ export function RewritePanel({ original, rewritten, rewriteType }: RewritePanelP
   }
 
   const typeLabels: Record<string, string> = {
-    sanitized: 'Privacy-Safe Version',
-    learning_oriented: 'Learning-Oriented Version',
-    improved_prompt: 'Improved Prompt',
+    sanitized: t('types.sanitized'),
+    learning_oriented: t('types.learning_oriented'),
+    improved_prompt: t('types.improved_prompt'),
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold text-foreground">Suggested Rewrite</h3>
+          <h3 className="font-semibold text-foreground">{t('title')}</h3>
           <p className="text-sm text-muted-foreground">
-            {typeLabels[rewriteType] || 'Improved Version'}
+            {typeLabels[rewriteType] || t('types.fallback')}
           </p>
         </div>
         <Button
@@ -42,7 +44,7 @@ export function RewritePanel({ original, rewritten, rewriteType }: RewritePanelP
           onClick={() => setShowComparison(!showComparison)}
           className="text-xs"
         >
-          {showComparison ? 'Hide' : 'Show'} Comparison
+          {showComparison ? t('hideComparison') : t('showComparison')}
         </Button>
       </div>
 
@@ -50,7 +52,7 @@ export function RewritePanel({ original, rewritten, rewriteType }: RewritePanelP
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Original
+              {t('original')}
             </p>
             <div className="rounded-lg border border-border bg-secondary/50 p-4">
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">
@@ -60,7 +62,7 @@ export function RewritePanel({ original, rewritten, rewriteType }: RewritePanelP
           </div>
           <div className="space-y-2">
             <p className="text-xs font-medium text-primary uppercase tracking-wider">
-              Improved
+              {t('improved')}
             </p>
             <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
               <p className="text-sm text-foreground whitespace-pre-wrap">
@@ -96,7 +98,7 @@ export function RewritePanel({ original, rewritten, rewriteType }: RewritePanelP
 
       <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
         <ArrowRight className="h-4 w-4" />
-        <span>Use this improved version for better results</span>
+        <span>{t('hint')}</span>
       </div>
     </div>
   )

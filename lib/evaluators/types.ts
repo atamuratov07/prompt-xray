@@ -5,6 +5,7 @@ import type {
 	Rewrite,
 	Severity,
 } from '@/lib/types/common'
+import type { AppLocale } from '@/i18n/locales'
 import { z } from 'zod'
 import type { EvaluatorId } from './ids'
 import type {
@@ -33,9 +34,12 @@ export interface Evaluator<
 	meta: EvaluatorMeta & { id: TId }
 	systemPrompt: string
 	responseSchema: z.ZodSchema<TResponse>
-	calculateScore: (response: TResponse) => { score: number; label: string }
+	calculateScore: (
+		response: TResponse,
+		locale: AppLocale,
+	) => { score: number; label: string }
 	explanations: Record<string, ExplanationCard>
-	getSuggestions: (response: TResponse) => string[]
+	getSuggestions: (response: TResponse, locale: AppLocale) => string[]
 }
 
 // Privacy Evaluator Types

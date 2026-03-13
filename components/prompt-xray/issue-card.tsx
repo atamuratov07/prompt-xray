@@ -2,13 +2,15 @@
 
 import { AlertTriangle, AlertCircle, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Severity, ExplanationCard } from '@/lib/types/common'
+import type { Severity } from '@/lib/types/common'
+import type { EvaluatorId } from '@/lib/evaluators/ids'
+import { useTranslations } from 'next-intl'
 
 interface IssueCardProps {
+  evaluatorId: EvaluatorId
   code: string
   severity: Severity
   evidence: string[]
-  explanation?: ExplanationCard
 }
 
 const severityConfig = {
@@ -35,7 +37,14 @@ const severityConfig = {
   },
 }
 
-export function IssueCard({ code, severity, evidence, explanation }: IssueCardProps) {
+export function IssueCard({
+  evaluatorId,
+  code,
+  severity,
+  evidence,
+}: IssueCardProps) {
+  const t = useTranslations('IssueCard')
+  const issueT = useTranslations(`IssueExplanations.${evaluatorId}.${code}`)
   const config = severityConfig[severity]
   const Icon = config.icon
 
@@ -54,7 +63,7 @@ export function IssueCard({ code, severity, evidence, explanation }: IssueCardPr
         <div className="flex-1 space-y-3">
           <div className="flex items-start justify-between gap-2">
             <h4 className="font-semibold text-foreground">
-              {explanation?.title || code.replace(/_/g, ' ')}
+              {issueT('title')}
             </h4>
             <span
               className={cn(
@@ -63,20 +72,18 @@ export function IssueCard({ code, severity, evidence, explanation }: IssueCardPr
                 config.color
               )}
             >
-              {config.label}
+              {t(`severity.${severity}`)}
             </span>
           </div>
 
-          {explanation && (
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {explanation.description}
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {issueT('description')}
+          </p>
 
           {evidence.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Evidence
+                {t('evidence')}
               </p>
               <div className="flex flex-wrap gap-2">
                 {evidence.map((item, i) => (
@@ -91,26 +98,22 @@ export function IssueCard({ code, severity, evidence, explanation }: IssueCardPr
             </div>
           )}
 
-          {explanation && (
-            <>
-              <div className="space-y-1.5">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Why it matters
-                </p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {explanation.whyItMatters}
-                </p>
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  How to fix
-                </p>
-                <p className="text-sm text-foreground leading-relaxed">
-                  {explanation.howToFix}
-                </p>
-              </div>
-            </>
-          )}
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {t('whyItMatters')}
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {issueT('whyItMatters')}
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {t('howToFix')}
+            </p>
+            <p className="text-sm text-foreground leading-relaxed">
+              {issueT('howToFix')}
+            </p>
+          </div>
         </div>
       </div>
     </div>

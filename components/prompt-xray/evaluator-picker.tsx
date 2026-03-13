@@ -4,6 +4,7 @@ import { Shield, GraduationCap, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { EvaluatorMeta } from '@/lib/types/common'
 import type { EvaluatorId } from '@/lib/evaluators/ids'
+import { useTranslations } from 'next-intl'
 
 const iconMap: Record<string, React.ElementType> = {
 	Shield,
@@ -24,10 +25,12 @@ export function EvaluatorPicker({
 	onSelect,
 	disabled,
 }: EvaluatorPickerProps) {
+	const t = useTranslations('EvaluatorPicker')
+	const evaluatorT = useTranslations('Evaluators')
 	return (
 		<div className='flex flex-col gap-3'>
 			<label className='text-sm font-medium text-muted-foreground'>
-				Select Analysis Mode
+				{t('label')}
 			</label>
 			<div className='grid gap-3 sm:grid-cols-3'>
 				{evaluators.map(evaluator => {
@@ -61,11 +64,11 @@ export function EvaluatorPicker({
 									<Icon className='h-5 w-5' />
 								</div>
 								<span className='font-semibold text-foreground'>
-									{evaluator.name}
+									{evaluatorT(`${evaluator.id}.name`)}
 								</span>
 							</div>
 							<p className='text-sm text-muted-foreground leading-relaxed'>
-								{evaluator.description}
+								{evaluatorT(`${evaluator.id}.description`)}
 							</p>
 							{isSelected && (
 								<div className='absolute -right-px -top-px h-3 w-3 rounded-bl-md rounded-tr-lg bg-primary' />

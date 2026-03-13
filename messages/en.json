@@ -1,0 +1,225 @@
+{
+  "LocaleSwitcher": {
+    "en": "EN",
+    "ru": "RU",
+    "uz-Latn": "UZ"
+  },
+  "Evaluators": {
+    "privacy": {
+      "name": "Privacy Check",
+      "description": "Detect personal or identifying information that may be unnecessarily exposed."
+    },
+    "academic-integrity": {
+      "name": "Academic Integrity Check",
+      "description": "Detect academic dishonesty patterns like outsourcing and concealment requests."
+    },
+    "prompt-quality": {
+      "name": "Prompt Quality Check",
+      "description": "Evaluate clarity, specificity, and completeness of your prompt."
+    }
+  },
+  "HomePage": {
+    "appName": "Prompt X-Ray",
+    "appSubtitle": "Multi-mode prompt evaluation",
+    "history": "History",
+    "newAnalysis": "New Analysis",
+    "title": "Analyze your prompts before you send them",
+    "subtitle": "Choose an analysis mode to evaluate your prompt for privacy, academic integrity, or quality issues.",
+    "analyzeWith": "Analyze with {evaluator}",
+    "analysisFailed": "Analysis failed",
+    "unexpectedError": "Something went wrong",
+    "historySaveFailed": "Analysis succeeded, but history could not be saved in this browser."
+  },
+  "HistoryPage": {
+    "title": "History",
+    "analysesCount": "{count, plural, one {# analysis} other {# analyses}}",
+    "clearAll": "Clear All",
+    "emptyTitle": "No history yet",
+    "emptyDescription": "Your analyzed prompts will appear here.",
+    "analyzePrompt": "Analyze a Prompt",
+    "originalPrompt": "Original Prompt",
+    "summary": "Summary",
+    "suggestedRewrite": "Suggested Rewrite",
+    "copy": "Copy",
+    "copied": "Copied",
+    "delete": "Delete"
+  },
+  "EvaluatorPicker": {
+    "label": "Select Analysis Mode"
+  },
+  "AnalysisResult": {
+    "summary": "Summary",
+    "findings": "Findings ({count})"
+  },
+  "SuggestionsList": {
+    "title": "Suggestions"
+  },
+  "IssueCard": {
+    "severity": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "evidence": "Evidence",
+    "whyItMatters": "Why it matters",
+    "howToFix": "How to fix"
+  },
+  "RewritePanel": {
+    "title": "Suggested Rewrite",
+    "types": {
+      "sanitized": "Privacy-Safe Version",
+      "learning_oriented": "Learning-Oriented Version",
+      "improved_prompt": "Improved Prompt",
+      "fallback": "Improved Version"
+    },
+    "showComparison": "Show Comparison",
+    "hideComparison": "Hide Comparison",
+    "original": "Original",
+    "improved": "Improved",
+    "hint": "Use this improved version for better results"
+  },
+  "PromptInput": {
+    "label": "Enter Your Prompt",
+    "paste": "Paste",
+    "clear": "Clear",
+    "placeholder": "Paste or type the prompt you want to analyze...",
+    "count": "{current} / {max} characters",
+    "tokens": "~{count} tokens"
+  },
+  "LoadingState": {
+    "title": "Analyzing your prompt...",
+    "running": "Running {evaluator}"
+  },
+  "ScoreCard": {
+    "riskFooter": "Risk score from 0-100. Lower is better.",
+    "qualityFooter": "Quality score from 0-100. Higher is better."
+  },
+  "IssueExplanations": {
+    "privacy": {
+      "personal_name_exposed": {
+        "title": "Personal name exposed",
+        "description": "Your prompt contains a personal name that could identify you or someone else.",
+        "whyItMatters": "Personal names combined with other context can be used to identify individuals, especially in AI systems that may log or process data.",
+        "howToFix": "Replace the name with a placeholder like \"[Name]\" or remove it if not essential to your request."
+      },
+      "organization_exposed": {
+        "title": "Organization name exposed",
+        "description": "Your prompt contains the name of a school, company, or organization.",
+        "whyItMatters": "Organization names can narrow down your identity and may reveal sensitive affiliations.",
+        "howToFix": "Replace with \"[Organization]\" or describe the type of institution without naming it."
+      },
+      "location_exposed": {
+        "title": "Location details exposed",
+        "description": "Your prompt contains specific location information.",
+        "whyItMatters": "Precise locations can be used to identify or track individuals.",
+        "howToFix": "Use general descriptions like \"a city\" or \"[Location]\" instead of specific addresses or place names."
+      },
+      "email_exposed": {
+        "title": "Email address exposed",
+        "description": "Your prompt contains an email address.",
+        "whyItMatters": "Email addresses are unique identifiers that can be used for tracking, spam, or phishing.",
+        "howToFix": "Replace with \"[email]\" or describe the type of email format needed."
+      },
+      "phone_exposed": {
+        "title": "Phone number exposed",
+        "description": "Your prompt contains a phone number.",
+        "whyItMatters": "Phone numbers are highly personal and can be used for unwanted contact or identity verification.",
+        "howToFix": "Replace with \"[phone number]\" or use a placeholder format."
+      },
+      "id_number_exposed": {
+        "title": "ID or official number exposed",
+        "description": "Your prompt contains an official identification number.",
+        "whyItMatters": "ID numbers are sensitive credentials that could be used for identity theft.",
+        "howToFix": "Never include real ID numbers. Use \"[ID number]\" or describe the format needed."
+      },
+      "username_exposed": {
+        "title": "Username or handle exposed",
+        "description": "Your prompt contains a social media handle or username.",
+        "whyItMatters": "Usernames can link to real identities and online profiles.",
+        "howToFix": "Replace with \"@[username]\" or remove if not essential."
+      },
+      "other_sensitive_exposed": {
+        "title": "Other sensitive information exposed",
+        "description": "Your prompt contains other potentially identifying information.",
+        "whyItMatters": "Various details can be combined to create a profile or identify individuals.",
+        "howToFix": "Review what information is truly necessary and replace specifics with placeholders."
+      }
+    },
+    "academic-integrity": {
+      "full_task_outsourcing": {
+        "title": "Full task outsourcing detected",
+        "description": "Your prompt asks AI to complete an entire assignment or task for you.",
+        "whyItMatters": "Submitting AI-generated work as your own undermines learning and violates academic integrity policies at most institutions.",
+        "howToFix": "Ask for help understanding concepts, creating outlines, or reviewing your own work instead of full completion."
+      },
+      "concealment_intent": {
+        "title": "Concealment intent detected",
+        "description": "Your prompt explicitly asks to hide AI involvement or make output appear human-written.",
+        "whyItMatters": "Attempting to conceal AI assistance is deceptive and typically violates academic honesty policies.",
+        "howToFix": "Remove concealment requests. Consider asking for guidance you can build upon transparently."
+      },
+      "answer_only_request": {
+        "title": "Answer-only request",
+        "description": "Your prompt asks for direct answers without learning context.",
+        "whyItMatters": "Getting answers without understanding reduces your learning and may not help with future similar problems.",
+        "howToFix": "Ask for explanations alongside answers, or request step-by-step guidance."
+      },
+      "minor_over_reliance": {
+        "title": "Minor over-reliance pattern",
+        "description": "Your prompt shows some dependency on AI for work you might benefit from doing yourself.",
+        "whyItMatters": "Over-relying on AI can prevent skill development and deep understanding.",
+        "howToFix": "Try the task yourself first, then use AI for clarification or review."
+      }
+    },
+    "prompt-quality": {
+      "missing_task": {
+        "title": "Task is missing or unclear",
+        "description": "Your prompt does not clearly state what action you want the AI to perform.",
+        "whyItMatters": "Without a clear task, the AI may guess incorrectly or provide irrelevant output.",
+        "howToFix": "Start with an action verb: \"Write...\", \"Explain...\", \"Create...\", \"Compare...\""
+      },
+      "missing_topic": {
+        "title": "Topic is missing or vague",
+        "description": "Your prompt lacks a specific subject or topic.",
+        "whyItMatters": "Vague topics lead to generic, unfocused responses.",
+        "howToFix": "Be specific about what subject matter you want addressed."
+      },
+      "missing_output_format": {
+        "title": "Output format is missing",
+        "description": "Your prompt does not specify how the response should be structured.",
+        "whyItMatters": "Without format guidance, you may get long paragraphs when you wanted bullet points, or vice versa.",
+        "howToFix": "Specify format: \"in bullet points\", \"as a table\", \"in 3 paragraphs\", \"step-by-step\"."
+      },
+      "missing_audience": {
+        "title": "Target audience is missing",
+        "description": "Your prompt does not indicate who the content is for.",
+        "whyItMatters": "Audience determines tone, complexity, and vocabulary of the response.",
+        "howToFix": "Add audience context: \"for a beginner\", \"for a technical audience\", \"for a 5-year-old\"."
+      },
+      "missing_goal": {
+        "title": "Goal or purpose is unclear",
+        "description": "Your prompt does not explain why you need this information.",
+        "whyItMatters": "Understanding the goal helps AI provide more relevant and useful responses.",
+        "howToFix": "Add context about your purpose: \"for a presentation\", \"to understand better\", \"for a blog post\"."
+      },
+      "missing_constraints": {
+        "title": "Constraints are missing",
+        "description": "Your prompt has no length, depth, or other constraints.",
+        "whyItMatters": "Without constraints, responses may be too long, too short, or inappropriate for your needs.",
+        "howToFix": "Add constraints: word count, number of items, time period, level of detail."
+      },
+      "weak_task": {
+        "title": "Task could be clearer",
+        "description": "Your task is present but could be more specific.",
+        "whyItMatters": "Clearer tasks produce more accurate results.",
+        "howToFix": "Make your action request more specific and unambiguous."
+      },
+      "weak_topic": {
+        "title": "Topic could be more specific",
+        "description": "Your topic is present but broad.",
+        "whyItMatters": "Narrower topics yield more focused, useful responses.",
+        "howToFix": "Narrow down your subject to a specific aspect."
+      }
+    }
+  }
+}

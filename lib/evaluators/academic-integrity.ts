@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { Evaluator, AcademicResponse } from './types'
 import type { ExplanationCard } from '@/lib/types/common'
+import type { AppLocale } from '@/i18n/locales'
 import { SEVERITY_MULTIPLIER } from '@/lib/types/common'
 
 export const academicIssueCodes = [
@@ -54,7 +55,43 @@ const POSITIVE_BONUSES: Record<AcademicPositiveSignalCode, number> = {
   asks_for_feedback: 10,
 }
 
-function calculateScore(response: AcademicResponse): { score: number; label: string } {
+const academicScoreLabels: Record<
+  AppLocale,
+  {
+    none: string
+    minor: string
+    moderate: string
+    high: string
+    critical: string
+  }
+> = {
+  en: {
+    none: 'No Integrity Concerns',
+    minor: 'Minor Concerns',
+    moderate: 'Moderate Risk',
+    high: 'High Risk',
+    critical: 'Critical Risk',
+  },
+  ru: {
+    none: 'Нарушений не выявлено',
+    minor: 'Незначительные риски',
+    moderate: 'Умеренный риск',
+    high: 'Высокий риск',
+    critical: 'Критический риск',
+  },
+  'uz-Latn': {
+    none: 'Halollik bo\'yicha muammo yo\'q',
+    minor: 'Yengil xavotirlar',
+    moderate: 'O\'rta xavf',
+    high: 'Yuqori xavf',
+    critical: 'Juda yuqori xavf',
+  },
+}
+
+function calculateScore(
+  response: AcademicResponse,
+  locale: AppLocale
+): { score: number; label: string } {
   let totalRisk = 0
   
   // Add issue weights
@@ -71,18 +108,19 @@ function calculateScore(response: AcademicResponse): { score: number; label: str
   }
   
   const score = Math.max(0, Math.min(100, Math.round(totalRisk - totalBonus)))
+  const labels = academicScoreLabels[locale]
   
   let label: string
   if (score === 0) {
-    label = 'No Integrity Concerns'
+    label = labels.none
   } else if (score <= 25) {
-    label = 'Minor Concerns'
+    label = labels.minor
   } else if (score <= 50) {
-    label = 'Moderate Risk'
+    label = labels.moderate
   } else if (score <= 75) {
-    label = 'High Risk'
+    label = labels.high
   } else {
-    label = 'Critical Risk'
+    label = labels.critical
   }
   
   return { score, label }
@@ -157,28 +195,85 @@ Respond in the same language as the user's prompt when possible.`,
   responseSchema: academicResponseSchema,
   calculateScore,
   explanations,
-  getSuggestions: (response: AcademicResponse) => {
+  getSuggestions: (response: AcademicResponse, locale: AppLocale) => {
     if (response.suggestions && response.suggestions.length > 0) {
       return response.suggestions
+    }
+
+    if (locale === 'uz-Latn') {
+      const suggestions: string[] = []
+
+      if (response.issues.some(i => i.code === 'full_task_outsourcing')) {
+        suggestions.push('Tayyor topshiriq o\'rniga reja yoki outline so\'rang.')
+        suggestions.push(
+          'Materialni yaxshiroq tushunish uchun asosiy tushunchalar izohini so\'rang.'
+        )
+      }
+      if (response.issues.some(i => i.code === 'concealment_intent')) {
+        suggestions.push(
+          'Talab qilinsa, AI yordami haqida ochiq va shaffof bo\'ling.'
+        )
+        suggestions.push('AIdan ghostwriter sifatida emas, o\'rganish vositasi sifatida foydalaning.')
+      }
+      if (response.issues.some(i => i.code === 'answer_only_request')) {
+        suggestions.push('Bosqichma-bosqich tushuntirishlarni so\'rang.')
+        suggestions.push(
+          'Tushunganingizni tekshirish uchun amaliy mashqlar yoki savollar so\'rang.'
+        )
+      }
+
+      if (suggestions.length === 0) {
+        suggestions.push('Promptingiz yaxshi o\'quv niyatini ko\'rsatadi!')
+      }
+
+      return suggestions
     }
     
     const suggestions: string[] = []
     
     if (response.issues.some(i => i.code === 'full_task_outsourcing')) {
-      suggestions.push('Ask for an outline instead of a full submission.')
-      suggestions.push('Request explanations of key concepts to understand better.')
+      suggestions.push(
+        locale === 'ru'
+          ? 'Попросите план вместо готовой работы.'
+          : 'Ask for an outline instead of a full submission.'
+      )
+      suggestions.push(
+        locale === 'ru'
+          ? 'Запросите объяснение ключевых понятий, чтобы лучше понять материал.'
+          : 'Request explanations of key concepts to understand better.'
+      )
     }
     if (response.issues.some(i => i.code === 'concealment_intent')) {
-      suggestions.push('Be transparent about AI assistance when required.')
-      suggestions.push('Use AI as a learning tool, not a ghostwriter.')
+      suggestions.push(
+        locale === 'ru'
+          ? 'Будьте прозрачны в вопросе использования ИИ, если это требуется.'
+          : 'Be transparent about AI assistance when required.'
+      )
+      suggestions.push(
+        locale === 'ru'
+          ? 'Используйте ИИ как инструмент обучения, а не как гострайтера.'
+          : 'Use AI as a learning tool, not a ghostwriter.'
+      )
     }
     if (response.issues.some(i => i.code === 'answer_only_request')) {
-      suggestions.push('Ask for step-by-step explanations.')
-      suggestions.push('Request practice problems to test your understanding.')
+      suggestions.push(
+        locale === 'ru'
+          ? 'Попросите пошаговые объяснения.'
+          : 'Ask for step-by-step explanations.'
+      )
+      suggestions.push(
+        locale === 'ru'
+          ? 'Попросите практические задания, чтобы проверить понимание.'
+          : 'Request practice problems to test your understanding.'
+      )
     }
     
     if (suggestions.length === 0) {
-      suggestions.push('Your prompt shows good learning intent!')
+      suggestions.push(
+        locale === 'ru'
+          ? 'Ваш промпт показывает хорошую учебную мотивацию.'
+          : 'Your prompt shows good learning intent!'
+      )
     }
     
     return suggestions

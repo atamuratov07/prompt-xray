@@ -5,14 +5,16 @@ import { IssueCard } from './issue-card'
 import { SuggestionsList } from './suggestions-list'
 import { RewritePanel } from './rewrite-panel'
 import type { AnalysisResult as AnalysisResultType } from '@/lib/types/common'
-import { getEvaluator, getEvaluatorMeta } from '@/lib/evaluators/registry'
+import { getEvaluatorMeta } from '@/lib/evaluators/registry'
+import { useTranslations } from 'next-intl'
 
 interface AnalysisResultProps {
 	result: AnalysisResultType
 }
 
 export function AnalysisResult({ result }: AnalysisResultProps) {
-	const evaluator = getEvaluator(result.evaluatorId)
+	const t = useTranslations('AnalysisResult')
+	const evaluatorT = useTranslations('Evaluators')
 	const meta = getEvaluatorMeta(result.evaluatorId)
 
 	const isRiskScore = result.evaluatorId !== 'prompt-quality'
@@ -21,7 +23,9 @@ export function AnalysisResult({ result }: AnalysisResultProps) {
 		<div className='space-y-8'>
 			{/* Score Card */}
 			<ScoreCard
-				evaluatorName={meta?.name || result.evaluatorId}
+				evaluatorName={
+					meta ? evaluatorT(`${meta.id}.name`) : result.evaluatorId
+				}
 				score={result.score}
 				label={result.scoreLabel}
 				isRiskScore={isRiskScore}
@@ -29,7 +33,7 @@ export function AnalysisResult({ result }: AnalysisResultProps) {
 
 			{/* Summary */}
 			<div className='space-y-2'>
-				<h3 className='font-semibold text-foreground'>Summary</h3>
+				<h3 className='font-semibold text-foreground'>{t('summary')}</h3>
 				<p className='text-muted-foreground leading-relaxed'>
 					{result.summary}
 				</p>
@@ -39,16 +43,16 @@ export function AnalysisResult({ result }: AnalysisResultProps) {
 			{result.issues.length > 0 && (
 				<div className='space-y-4'>
 					<h3 className='font-semibold text-foreground'>
-						Findings ({result.issues.length})
+						{t('findings', {count: result.issues.length})}
 					</h3>
 					<div className='space-y-4'>
 						{result.issues.map((issue, i) => (
 							<IssueCard
 								key={i}
+								evaluatorId={result.evaluatorId}
 								code={issue.code}
 								severity={issue.severity}
 								evidence={issue.evidence}
-								explanation={evaluator?.explanations[issue.code]}
 							/>
 						))}
 					</div>

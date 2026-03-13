@@ -1,4 +1,5 @@
 import type { ExplanationCard } from '@/lib/types/common'
+import type { AppLocale } from '@/i18n/locales'
 import { NECESSITY_MODIFIER, SEVERITY_MULTIPLIER } from '@/lib/types/common'
 import { z } from 'zod'
 import { type Evaluator, type PrivacyResponse } from './types'
@@ -54,7 +55,40 @@ const BASE_WEIGHTS: Record<PrivacyIssueCode, number> = {
 	other_sensitive_exposed: 15,
 }
 
-function calculateScore(response: PrivacyResponse): {
+const privacyScoreLabels: Record<
+	AppLocale,
+	{
+		noRisk: string
+		low: string
+		moderate: string
+		high: string
+		critical: string
+	}
+> = {
+	en: {
+		noRisk: 'No Privacy Risk',
+		low: 'Low Risk',
+		moderate: 'Moderate Risk',
+		high: 'High Risk',
+		critical: 'Critical Risk',
+	},
+	ru: {
+		noRisk: 'Нет риска приватности',
+		low: 'Низкий риск',
+		moderate: 'Умеренный риск',
+		high: 'Высокий риск',
+		critical: 'Критический риск',
+	},
+	'uz-Latn': {
+		noRisk: 'Maxfiylik xavfi yo\'q',
+		low: 'Past xavf',
+		moderate: 'O\'rta xavf',
+		high: 'Yuqori xavf',
+		critical: 'Juda yuqori xavf',
+	},
+}
+
+function calculateScore(response: PrivacyResponse, locale: AppLocale): {
 	score: number
 	label: string
 } {
@@ -68,18 +102,19 @@ function calculateScore(response: PrivacyResponse): {
 	}
 
 	const score = Math.min(Math.round(totalRisk), 100)
+	const labels = privacyScoreLabels[locale]
 
 	let label: string
 	if (score === 0) {
-		label = 'No Privacy Risk'
+		label = labels.noRisk
 	} else if (score <= 25) {
-		label = 'Low Risk'
+		label = labels.low
 	} else if (score <= 50) {
-		label = 'Moderate Risk'
+		label = labels.moderate
 	} else if (score <= 75) {
-		label = 'High Risk'
+		label = labels.high
 	} else {
-		label = 'Critical Risk'
+		label = labels.critical
 	}
 
 	return { score, label }
@@ -197,24 +232,68 @@ Respond in the same language as the user's prompt when possible.`,
 	responseSchema: privacyResponseSchema,
 	calculateScore,
 	explanations,
-	getSuggestions: (response: PrivacyResponse) => {
+	getSuggestions: (response: PrivacyResponse, locale: AppLocale) => {
 		if (response.suggestions && response.suggestions.length > 0) {
 			return response.suggestions
+		}
+
+		if (locale === 'uz-Latn') {
+			const suggestions: string[] = []
+
+			if (response.issues.some(i => i.code === 'organization_exposed')) {
+				suggestions.push(
+					'Tashkilot nomlarini neytral o\'rinbosarlar bilan almashtiring.',
+				)
+			}
+			if (response.issues.some(i => i.code === 'personal_name_exposed')) {
+				suggestions.push('Shaxsiy ismlarni olib tashlang yoki anonimlashtiring.')
+			}
+			if (response.issues.some(i => i.code === 'location_exposed')) {
+				suggestions.push(
+					'Aniq joy nomlari o\'rniga umumiy joylashuv tavsiflaridan foydalaning.',
+				)
+			}
+			if (
+				response.issues.some(
+					i => i.code === 'email_exposed' || i.code === 'phone_exposed',
+				)
+			) {
+				suggestions.push(
+					'Promptlarda hech qachon haqiqiy aloqa ma\'lumotlarini kiritmang.',
+				)
+			}
+			if (response.issues.some(i => i.code === 'id_number_exposed')) {
+				suggestions.push('Barcha rasmiy ID raqamlarini darhol olib tashlang.')
+			}
+
+			if (suggestions.length === 0) {
+				suggestions.push('Promptingiz maxfiylik nuqtai nazaridan xavfsiz ko\'rinadi!')
+			}
+
+			return suggestions
 		}
 
 		const suggestions: string[] = []
 
 		if (response.issues.some(i => i.code === 'organization_exposed')) {
 			suggestions.push(
-				'Replace organization names with neutral placeholders.',
+				locale === 'ru'
+					? 'Замените названия организаций нейтральными плейсхолдерами.'
+					: 'Replace organization names with neutral placeholders.',
 			)
 		}
 		if (response.issues.some(i => i.code === 'personal_name_exposed')) {
-			suggestions.push('Remove or anonymize personal names.')
+			suggestions.push(
+				locale === 'ru'
+					? 'Удалите или анонимизируйте личные имена.'
+					: 'Remove or anonymize personal names.',
+			)
 		}
 		if (response.issues.some(i => i.code === 'location_exposed')) {
 			suggestions.push(
-				'Use general location descriptions instead of specific places.',
+				locale === 'ru'
+					? 'Используйте общие описания мест вместо конкретных локаций.'
+					: 'Use general location descriptions instead of specific places.',
 			)
 		}
 		if (
@@ -222,14 +301,26 @@ Respond in the same language as the user's prompt when possible.`,
 				i => i.code === 'email_exposed' || i.code === 'phone_exposed',
 			)
 		) {
-			suggestions.push('Never include real contact information in prompts.')
+			suggestions.push(
+				locale === 'ru'
+					? 'Никогда не указывайте реальные контактные данные в промптах.'
+					: 'Never include real contact information in prompts.',
+			)
 		}
 		if (response.issues.some(i => i.code === 'id_number_exposed')) {
-			suggestions.push('Remove all official ID numbers immediately.')
+			suggestions.push(
+				locale === 'ru'
+					? 'Немедленно удалите все официальные идентификационные номера.'
+					: 'Remove all official ID numbers immediately.',
+			)
 		}
 
 		if (suggestions.length === 0) {
-			suggestions.push('Your prompt appears privacy-safe!')
+			suggestions.push(
+				locale === 'ru'
+					? 'Ваш промпт выглядит безопасным с точки зрения приватности.'
+					: 'Your prompt appears privacy-safe!',
+			)
 		}
 
 		return suggestions

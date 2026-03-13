@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface ScoreCardProps {
   evaluatorName: string
@@ -15,6 +16,7 @@ export function ScoreCard({
   label,
   isRiskScore = true,
 }: ScoreCardProps) {
+  const t = useTranslations('ScoreCard')
   const getScoreColor = () => {
     if (isRiskScore) {
       // Risk score: low is good, high is bad
@@ -82,8 +84,8 @@ export function ScoreCard({
         </div>
         <p className="text-xs text-muted-foreground">
           {isRiskScore
-            ? 'Risk score from 0-100. Lower is better.'
-            : 'Quality score from 0-100. Higher is better.'}
+            ? t('riskFooter')
+            : t('qualityFooter')}
         </p>
       </div>
     </div>

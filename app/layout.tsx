@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { getLocale } from 'next-intl/server'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 
@@ -31,13 +32,15 @@ export const metadata: Metadata = {
 	},
 }
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode
 }>) {
+	const locale = await getLocale()
+
 	return (
-		<html lang='en'>
+		<html lang={locale}>
 			<body className='font-sans antialiased'>
 				{children}
 				<Toaster />

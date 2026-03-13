@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { Evaluator, QualityResponse } from './types'
 import type { ExplanationCard } from '@/lib/types/common'
+import type { AppLocale } from '@/i18n/locales'
 
 export const qualityIssueCodes = [
 	'missing_task',
@@ -54,6 +55,39 @@ const ELEMENT_WEIGHTS: Record<QualityElementKey, number> = {
   constraints: 15,
 }
 
+const qualityScoreLabels: Record<
+  AppLocale,
+  {
+    excellent: string
+    good: string
+    fair: string
+    needsWork: string
+    poor: string
+  }
+> = {
+  en: {
+    excellent: 'Excellent',
+    good: 'Good',
+    fair: 'Fair',
+    needsWork: 'Needs Work',
+    poor: 'Poor',
+  },
+  ru: {
+    excellent: 'Отлично',
+    good: 'Хорошо',
+    fair: 'Нормально',
+    needsWork: 'Нужно доработать',
+    poor: 'Слабо',
+  },
+  'uz-Latn': {
+    excellent: 'Ajoyib',
+    good: 'Yaxshi',
+    fair: 'Qoniqarli',
+    needsWork: 'Ishlash kerak',
+    poor: 'Sust',
+  },
+}
+
 function getElementKeyForIssue(code: QualityIssueCode): QualityElementKey {
   switch (code) {
     case 'missing_task':
@@ -73,7 +107,10 @@ function getElementKeyForIssue(code: QualityIssueCode): QualityElementKey {
   }
 }
 
-function calculateScore(response: QualityResponse): { score: number; label: string } {
+function calculateScore(
+  response: QualityResponse,
+  locale: AppLocale
+): { score: number; label: string } {
   let deductions = 0
   
   // Deduct for missing elements
@@ -91,18 +128,19 @@ function calculateScore(response: QualityResponse): { score: number; label: stri
   }
   
   const score = Math.max(0, Math.round(100 - deductions))
+  const labels = qualityScoreLabels[locale]
   
   let label: string
   if (score >= 90) {
-    label = 'Excellent'
+    label = labels.excellent
   } else if (score >= 75) {
-    label = 'Good'
+    label = labels.good
   } else if (score >= 50) {
-    label = 'Fair'
+    label = labels.fair
   } else if (score >= 25) {
-    label = 'Needs Work'
+    label = labels.needsWork
   } else {
-    label = 'Poor'
+    label = labels.poor
   }
   
   return { score, label }
@@ -201,28 +239,73 @@ Respond in the same language as the user's prompt when possible.`,
   responseSchema: qualityResponseSchema,
   calculateScore,
   explanations,
-  getSuggestions: (response: QualityResponse) => {
+  getSuggestions: (response: QualityResponse, locale: AppLocale) => {
     if (response.suggestions && response.suggestions.length > 0) {
       return response.suggestions
+    }
+
+    if (locale === 'uz-Latn') {
+      const suggestions: string[] = []
+
+      if (response.missingElements.includes('output_format')) {
+        suggestions.push(
+          'Qaysi formatni xohlashingizni ayting: punktlar, paragraflar, jadval va hokazo.'
+        )
+      }
+      if (response.missingElements.includes('audience')) {
+        suggestions.push('Javob kim uchun mo\'ljallanganini ko\'rsating.')
+      }
+      if (response.missingElements.includes('constraints')) {
+        suggestions.push('Uzunlik yoki chuqurlik kabi cheklovlarni qo\'shing.')
+      }
+      if (response.missingElements.includes('goal')) {
+        suggestions.push('Bu ma\'lumot sizga nima uchun kerakligini tushuntiring.')
+      }
+
+      if (suggestions.length === 0) {
+        suggestions.push('Promptingiz allaqachon yaxshi tuzilgan!')
+      }
+
+      return suggestions
     }
     
     const suggestions: string[] = []
     
     if (response.missingElements.includes('output_format')) {
-      suggestions.push('Specify the format you want (bullets, paragraphs, table, etc.).')
+      suggestions.push(
+        locale === 'ru'
+          ? 'Уточните желаемый формат ответа: список, абзацы, таблица и т.д.'
+          : 'Specify the format you want (bullets, paragraphs, table, etc.).'
+      )
     }
     if (response.missingElements.includes('audience')) {
-      suggestions.push('State who the answer is for.')
+      suggestions.push(
+        locale === 'ru'
+          ? 'Укажите, для какой аудитории предназначен ответ.'
+          : 'State who the answer is for.'
+      )
     }
     if (response.missingElements.includes('constraints')) {
-      suggestions.push('Add constraints such as length or depth.')
+      suggestions.push(
+        locale === 'ru'
+          ? 'Добавьте ограничения, например по длине или глубине ответа.'
+          : 'Add constraints such as length or depth.'
+      )
     }
     if (response.missingElements.includes('goal')) {
-      suggestions.push('Explain why you need this information.')
+      suggestions.push(
+        locale === 'ru'
+          ? 'Поясните, зачем вам нужна эта информация.'
+          : 'Explain why you need this information.'
+      )
     }
     
     if (suggestions.length === 0) {
-      suggestions.push('Your prompt is well-structured!')
+      suggestions.push(
+        locale === 'ru'
+          ? 'Ваш промпт уже хорошо структурирован.'
+          : 'Your prompt is well-structured!'
+      )
     }
     
     return suggestions

@@ -1,0 +1,225 @@
+{
+  "LocaleSwitcher": {
+    "en": "EN",
+    "ru": "RU",
+    "uz-Latn": "UZ"
+  },
+  "Evaluators": {
+    "privacy": {
+      "name": "Maxfiylik tekshiruvi",
+      "description": "Keraksiz oshkor qilingan shaxsiy yoki identifikatsion ma'lumotlarni aniqlaydi."
+    },
+    "academic-integrity": {
+      "name": "Akademik halollik tekshiruvi",
+      "description": "Topshiriqni AIga topshirib qo'yish yoki AI yordamini yashirish kabi halollik buzilishi alomatlarini aniqlaydi."
+    },
+    "prompt-quality": {
+      "name": "Prompt sifati tekshiruvi",
+      "description": "Promptingizning aniqligi, ravshanligi va to'liqligini baholaydi."
+    }
+  },
+  "HomePage": {
+    "appName": "Prompt X-Ray",
+    "appSubtitle": "Ko'p rejimli prompt tahlili",
+    "history": "Tarix",
+    "newAnalysis": "Yangi tahlil",
+    "title": "Promptlarni yuborishdan oldin tahlil qiling",
+    "subtitle": "Promptingizni maxfiylik, akademik halollik yoki sifat muammolari bo'yicha baholash uchun tahlil rejimini tanlang.",
+    "analyzeWith": "{evaluator} bilan tahlil qilish",
+    "analysisFailed": "Tahlil amalga oshmadi",
+    "unexpectedError": "Nimadir xato ketdi",
+    "historySaveFailed": "Tahlil muvaffaqiyatli bajarildi, ammo tarixni shu brauzerda saqlab bo'lmadi."
+  },
+  "HistoryPage": {
+    "title": "Tarix",
+    "analysesCount": "{count} ta tahlil",
+    "clearAll": "Hammasini tozalash",
+    "emptyTitle": "Tarix hozircha yo'q",
+    "emptyDescription": "Tahlil qilingan promptlaringiz shu yerda ko'rinadi.",
+    "analyzePrompt": "Promptni tahlil qilish",
+    "originalPrompt": "Asl prompt",
+    "summary": "Xulosa",
+    "suggestedRewrite": "Tavsiya etilgan qayta yozish",
+    "copy": "Nusxalash",
+    "copied": "Nusxalandi",
+    "delete": "O'chirish"
+  },
+  "EvaluatorPicker": {
+    "label": "Tahlil rejimini tanlang"
+  },
+  "AnalysisResult": {
+    "summary": "Xulosa",
+    "findings": "Topilmalar ({count})"
+  },
+  "SuggestionsList": {
+    "title": "Tavsiyalar"
+  },
+  "IssueCard": {
+    "severity": {
+      "low": "Past",
+      "medium": "O'rta",
+      "high": "Yuqori"
+    },
+    "evidence": "Dalillar",
+    "whyItMatters": "Nega bu muhim",
+    "howToFix": "Qanday tuzatish kerak"
+  },
+  "RewritePanel": {
+    "title": "Tavsiya etilgan qayta yozish",
+    "types": {
+      "sanitized": "Maxfiylik uchun xavfsiz versiya",
+      "learning_oriented": "Ta'limga yo'naltirilgan versiya",
+      "improved_prompt": "Yaxshilangan prompt",
+      "fallback": "Yaxshilangan versiya"
+    },
+    "showComparison": "Taqqoslashni ko'rsatish",
+    "hideComparison": "Taqqoslashni yashirish",
+    "original": "Asl",
+    "improved": "Yaxshilangan",
+    "hint": "Yaxshiroq natija uchun shu yaxshilangan versiyadan foydalaning"
+  },
+  "PromptInput": {
+    "label": "Promptingizni kiriting",
+    "paste": "Qo'yish",
+    "clear": "Tozalash",
+    "placeholder": "Tahlil qilmoqchi bo'lgan promptingizni joylang yoki yozing...",
+    "count": "{current} / {max} belgi",
+    "tokens": "~{count} token"
+  },
+  "LoadingState": {
+    "title": "Promptingiz tahlil qilinmoqda...",
+    "running": "{evaluator} ishlamoqda"
+  },
+  "ScoreCard": {
+    "riskFooter": "Xavf balli 0-100 oralig'ida. Pastroq bo'lsa yaxshi.",
+    "qualityFooter": "Sifat balli 0-100 oralig'ida. Yuqoriroq bo'lsa yaxshi."
+  },
+  "IssueExplanations": {
+    "privacy": {
+      "personal_name_exposed": {
+        "title": "Shaxsiy ism oshkor qilingan",
+        "description": "Promptingizda sizni yoki boshqa birovni aniqlashi mumkin bo'lgan ism bor.",
+        "whyItMatters": "Ismlar boshqa kontekst bilan birga shaxsni aniqlashga yordam beradi, ayniqsa ma'lumotlarni qayd etishi yoki qayta ishlashi mumkin bo'lgan AI tizimlarida.",
+        "howToFix": "Ismni \"[Ism]\" kabi o'rinbosar bilan almashtiring yoki zarur bo'lmasa olib tashlang."
+      },
+      "organization_exposed": {
+        "title": "Tashkilot nomi oshkor qilingan",
+        "description": "Promptingizda maktab, kompaniya yoki tashkilot nomi bor.",
+        "whyItMatters": "Tashkilot nomlari sizning shaxsingizni toraytirishi va nozik bog'liqliklarni oshkor qilishi mumkin.",
+        "howToFix": "\"[Tashkilot]\" bilan almashtiring yoki nomini aytmasdan muassasa turini tasvirlang."
+      },
+      "location_exposed": {
+        "title": "Joylashuv tafsilotlari oshkor qilingan",
+        "description": "Promptingizda aniq joylashuv ma'lumoti bor.",
+        "whyItMatters": "Aniq joylashuvlar odamlarni aniqlash yoki kuzatish uchun ishlatilishi mumkin.",
+        "howToFix": "Muayyan manzil yoki joy nomlari o'rniga \"bir shahar\" yoki \"[Joylashuv]\" kabi umumiy ifodalardan foydalaning."
+      },
+      "email_exposed": {
+        "title": "Email manzil oshkor qilingan",
+        "description": "Promptingizda email manzil bor.",
+        "whyItMatters": "Email manzillar noyob identifikator bo'lib, kuzatish, spam yoki fishing uchun ishlatilishi mumkin.",
+        "howToFix": "\"[email]\" bilan almashtiring yoki kerakli email formatini tasvirlang."
+      },
+      "phone_exposed": {
+        "title": "Telefon raqam oshkor qilingan",
+        "description": "Promptingizda telefon raqami bor.",
+        "whyItMatters": "Telefon raqamlari juda shaxsiy bo'lib, keraksiz aloqa yoki identifikatsiya uchun ishlatilishi mumkin.",
+        "howToFix": "\"[telefon raqami]\" bilan almashtiring yoki namunaviy formatdan foydalaning."
+      },
+      "id_number_exposed": {
+        "title": "ID yoki rasmiy raqam oshkor qilingan",
+        "description": "Promptingizda rasmiy identifikatsiya raqami bor.",
+        "whyItMatters": "ID raqamlari nozik ma'lumot bo'lib, shaxsni o'g'irlash uchun ishlatilishi mumkin.",
+        "howToFix": "Haqiqiy ID raqamlarini hech qachon yubormang. \"[ID raqami]\"dan foydalaning yoki kerakli formatni tasvirlang."
+      },
+      "username_exposed": {
+        "title": "Foydalanuvchi nomi yoki handle oshkor qilingan",
+        "description": "Promptingizda ijtimoiy tarmoq handle'i yoki foydalanuvchi nomi bor.",
+        "whyItMatters": "Foydalanuvchi nomlari haqiqiy shaxslar va onlayn profillarga bog'lanishi mumkin.",
+        "howToFix": "\"@[username]\" bilan almashtiring yoki zarur bo'lmasa olib tashlang."
+      },
+      "other_sensitive_exposed": {
+        "title": "Boshqa nozik ma'lumot oshkor qilingan",
+        "description": "Promptingizda shaxsni aniqlashi mumkin bo'lgan boshqa ma'lumotlar bor.",
+        "whyItMatters": "Turli tafsilotlar birlashtirilib profil yaratish yoki shaxsni aniqlash uchun ishlatilishi mumkin.",
+        "howToFix": "Qaysi ma'lumotlar haqiqatda kerakligini tekshiring va aniqlarini o'rinbosarlar bilan almashtiring."
+      }
+    },
+    "academic-integrity": {
+      "full_task_outsourcing": {
+        "title": "Butun topshiriqni topshirib qo'yish aniqlandi",
+        "description": "Promptingiz AI'dan butun vazifa yoki topshiriqni siz uchun bajarishni so'raydi.",
+        "whyItMatters": "AI yaratgan ishni o'zingizniki sifatida topshirish o'rganishga putur yetkazadi va aksariyat muassasalarda akademik halollik qoidalarini buzadi.",
+        "howToFix": "To'liq bajarishni so'rash o'rniga tushunchalarni anglash, reja tuzish yoki o'z ishingizni ko'rib chiqishda yordam so'rang."
+      },
+      "concealment_intent": {
+        "title": "Yashirish niyati aniqlandi",
+        "description": "Promptingiz AI ishtirokini yashirishni yoki natijani inson yozgandek ko'rsatishni so'raydi.",
+        "whyItMatters": "AI yordamidan foydalanganini yashirish aldamchilik hisoblanadi va odatda akademik halollik siyosatini buzadi.",
+        "howToFix": "Yashirish haqidagi talablarni olib tashlang. Shaffof tarzda foydalanishingiz mumkin bo'lgan yordamni so'rang."
+      },
+      "answer_only_request": {
+        "title": "Faqat javob so'rovi",
+        "description": "Promptingiz o'rganish kontekstisiz to'g'ridan to'g'ri javoblarni so'raydi.",
+        "whyItMatters": "Tushunmasdan javob olish o'rganishingizni kamaytiradi va keyingi o'xshash vazifalarda yordam bermaydi.",
+        "howToFix": "Javob bilan birga tushuntirishlarni yoki bosqichma-bosqich yo'l-yo'riqni so'rang."
+      },
+      "minor_over_reliance": {
+        "title": "Yengil ortiqcha tayanish holati",
+        "description": "Promptingiz o'zingiz bajarsangiz foydaliroq bo'ladigan ish uchun AIga ma'lum darajada tayanishni ko'rsatadi.",
+        "whyItMatters": "AIga ortiqcha tayanish ko'nikmalar va chuqur tushunishning rivojlanishiga to'sqinlik qiladi.",
+        "howToFix": "Avval vazifani o'zingiz urinib ko'ring, keyin aniqlashtirish yoki tekshirish uchun AI'dan foydalaning."
+      }
+    },
+    "prompt-quality": {
+      "missing_task": {
+        "title": "Vazifa yo'q yoki noaniq",
+        "description": "Promptingiz AI qanday amal bajarishini aniq ko'rsatmaydi.",
+        "whyItMatters": "Aniq vazifa bo'lmasa, AI noto'g'ri taxmin qilishi yoki aloqasiz javob berishi mumkin.",
+        "howToFix": "\"Yoz...\", \"Tushuntir...\", \"Yarat...\", \"Taqqosla...\" kabi amal fe'li bilan boshlang."
+      },
+      "missing_topic": {
+        "title": "Mavzu yo'q yoki juda mavhum",
+        "description": "Promptingizda aniq predmet yoki mavzu yetishmaydi.",
+        "whyItMatters": "Mavhum mavzular umumiy va fokuslanmagan javoblarga olib keladi.",
+        "howToFix": "Qaysi mavzu yoritilishini aniqroq belgilang."
+      },
+      "missing_output_format": {
+        "title": "Natija formati ko'rsatilmagan",
+        "description": "Promptingiz javob qanday tuzilishda bo'lishini aytmaydi.",
+        "whyItMatters": "Format bo'yicha yo'l-yo'riq bo'lmasa, siz punktlar xohlaganingizda uzun matn yoki aksincha olishingiz mumkin.",
+        "howToFix": "Formatni ko'rsating: \"punktlarda\", \"jadval shaklida\", \"3 paragrafda\", \"bosqichma-bosqich\"."
+      },
+      "missing_audience": {
+        "title": "Maqsadli auditoriya ko'rsatilmagan",
+        "description": "Promptingiz kontent kim uchun ekanini bildirmaydi.",
+        "whyItMatters": "Auditoriya javobning ohangi, murakkabligi va lug'atini belgilaydi.",
+        "howToFix": "\"boshlovchi uchun\", \"texnik auditoriya uchun\", \"5 yoshli bola uchun\" kabi kontekst qo'shing."
+      },
+      "missing_goal": {
+        "title": "Maqsad noaniq",
+        "description": "Promptingiz bu ma'lumot nima uchun kerakligini tushuntirmaydi.",
+        "whyItMatters": "Maqsadni tushunish AIga yanada mos va foydali javob berishga yordam beradi.",
+        "howToFix": "\"taqdimot uchun\", \"yaxshiroq tushunish uchun\", \"blog posti uchun\" kabi maqsad kontekstini qo'shing."
+      },
+      "missing_constraints": {
+        "title": "Cheklovlar ko'rsatilmagan",
+        "description": "Promptingizda uzunlik, chuqurlik yoki boshqa cheklovlar yo'q.",
+        "whyItMatters": "Cheklovlarsiz javoblar juda uzun, juda qisqa yoki ehtiyojingizga mos bo'lmagan bo'lishi mumkin.",
+        "howToFix": "So'z soni, punktlar soni, vaqt davri yoki tafsilot darajasi kabi cheklovlarni qo'shing."
+      },
+      "weak_task": {
+        "title": "Vazifa yanada aniqroq bo'lishi mumkin",
+        "description": "Vazifa mavjud, ammo aniqroq ifodalansa yaxshi bo'ladi.",
+        "whyItMatters": "Aniqroq vazifalar aniqroq natija beradi.",
+        "howToFix": "Amal so'rovingizni yanada aniq va ikki ma'nosiz qiling."
+      },
+      "weak_topic": {
+        "title": "Mavzu yanada aniqroq bo'lishi mumkin",
+        "description": "Mavzu mavjud, ammo juda keng.",
+        "whyItMatters": "Torroq mavzular ko'proq fokuslangan va foydali javoblar beradi.",
+        "howToFix": "Mavzuni aniqroq jihatga toraytiring."
+      }
+    }
+  }
+}

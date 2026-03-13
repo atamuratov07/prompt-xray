@@ -1,5 +1,6 @@
 import { getEvaluator } from '@/lib/evaluators/registry'
 import type { EvaluatorId } from '@/lib/evaluators/ids'
+import type { AppLocale } from '@/i18n/locales'
 import type {
 	BaseEvaluatorResponse,
 	Evaluator,
@@ -8,16 +9,25 @@ import type { AnalysisResult } from '@/lib/types/common'
 import { generateText, Output } from 'ai'
 import { AnalyzeRequestSchema } from './schema'
 
+const localeInstructions: Record<AppLocale, string> = {
+	en: 'Override any default language preference. Return all user-facing prose in English. Keep evidence spans verbatim from the original prompt.',
+	ru: 'Override any default language preference. Return all user-facing prose in Russian. Keep evidence spans verbatim from the original prompt.',
+	'uz-Latn':
+		'Override any default language preference. Return all user-facing prose in Uzbek written in the Latin alphabet. Do not use Cyrillic. Keep evidence spans verbatim from the original prompt.',
+}
+
 async function analyzeWithEvaluator<
 	TResponse extends BaseEvaluatorResponse,
 	TId extends EvaluatorId,
 >({
 	evaluator,
 	evaluatorId,
+	locale,
 	prompt,
 }: {
 	evaluator: Evaluator<TResponse, TId>
 	evaluatorId: TId
+	locale: AppLocale
 	prompt: string
 }): Promise<AnalysisResult> {
 	const { output } = await generateText({
@@ -25,7 +35,7 @@ async function analyzeWithEvaluator<
 		output: Output.object({
 			schema: evaluator.responseSchema,
 		}),
-		system: evaluator.systemPrompt,
+		system: `${evaluator.systemPrompt}\n\n${localeInstructions[locale]}`,
 		prompt: `Analyze this prompt:\n\n${prompt}`,
 	})
 
@@ -33,8 +43,8 @@ async function analyzeWithEvaluator<
 		throw new Error('Failed to generate analysis')
 	}
 
-	const { score, label } = evaluator.calculateScore(output)
-	const suggestions = evaluator.getSuggestions(output)
+	const { score, label } = evaluator.calculateScore(output, locale)
+	const suggestions = evaluator.getSuggestions(output, locale)
 
 	return {
 		evaluatorId,
@@ -60,7 +70,7 @@ export async function POST(req: Request) {
 			)
 		}
 
-		const { evaluatorId, prompt } = body.data
+		const { evaluatorId, locale, prompt } = body.data
 
 		switch (evaluatorId) {
 			case 'privacy':
@@ -68,6 +78,7 @@ export async function POST(req: Request) {
 					await analyzeWithEvaluator({
 						evaluator: getEvaluator('privacy'),
 						evaluatorId,
+						locale,
 						prompt,
 					}),
 				)
@@ -76,6 +87,7 @@ export async function POST(req: Request) {
 					await analyzeWithEvaluator({
 						evaluator: getEvaluator('academic-integrity'),
 						evaluatorId,
+						locale,
 						prompt,
 					}),
 				)
@@ -84,6 +96,7 @@ export async function POST(req: Request) {
 					await analyzeWithEvaluator({
 						evaluator: getEvaluator('prompt-quality'),
 						evaluatorId,
+						locale,
 						prompt,
 					}),
 				)
