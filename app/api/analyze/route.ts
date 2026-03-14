@@ -12,7 +12,7 @@ import { AnalyzeRequestSchema } from './schema'
 const localeInstructions: Record<AppLocale, string> = {
 	en: 'Override any default language preference. Return all user-facing prose in English. Keep evidence spans verbatim from the original prompt.',
 	ru: 'Override any default language preference. Return all user-facing prose in Russian. Keep evidence spans verbatim from the original prompt.',
-	'uz-Latn':
+	uz:
 		'Override any default language preference. Return all user-facing prose in Uzbek written in the Latin alphabet. Do not use Cyrillic. Keep evidence spans verbatim from the original prompt.',
 }
 

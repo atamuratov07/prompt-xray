@@ -1,7 +1,12 @@
-import { z } from 'zod'
-import type { Evaluator, QualityResponse } from './types'
-import type { ExplanationCard } from '@/lib/types/common'
 import type { AppLocale } from '@/i18n/locales'
+import type { ExplanationCard } from '@/lib/types/common'
+import { z } from 'zod'
+import {
+	type LocalizedSuggestionMap,
+	type LocalizedText,
+	resolveFallbackSuggestions,
+} from './suggestion-utils'
+import type { Evaluator, QualityResponse } from './types'
 
 export const qualityIssueCodes = [
 	'missing_task',
@@ -31,184 +36,263 @@ const qualityIssueCodeSchema = z.enum(qualityIssueCodes)
 const qualityElementKeySchema = z.enum(qualityElementKeys)
 
 const qualityResponseSchema = z.object({
-  summary: z.string(),
-  issues: z.array(z.object({
-    code: qualityIssueCodeSchema,
-    severity: z.enum(['low', 'medium', 'high']),
-    evidence: z.array(z.string()),
-  })),
-  presentElements: z.array(qualityElementKeySchema),
-  missingElements: z.array(qualityElementKeySchema),
-  rewrite: z.object({
-    type: z.string(),
-    text: z.string(),
-  }),
-  suggestions: z.array(z.string()),
+	summary: z.string(),
+	issues: z.array(
+		z.object({
+			code: qualityIssueCodeSchema,
+			severity: z.enum(['low', 'medium', 'high']),
+			evidence: z.array(z.string()),
+		}),
+	),
+	presentElements: z.array(qualityElementKeySchema),
+	missingElements: z.array(qualityElementKeySchema),
+	rewrite: z.object({
+		type: z.string(),
+		text: z.string(),
+	}),
+	suggestions: z.array(z.string()),
 })
 
 const ELEMENT_WEIGHTS: Record<QualityElementKey, number> = {
-  task: 20,
-  topic: 15,
-  output_format: 15,
-  audience: 15,
-  goal: 20,
-  constraints: 15,
+	task: 20,
+	topic: 15,
+	output_format: 15,
+	audience: 15,
+	goal: 20,
+	constraints: 15,
 }
 
 const qualityScoreLabels: Record<
-  AppLocale,
-  {
-    excellent: string
-    good: string
-    fair: string
-    needsWork: string
-    poor: string
-  }
+	AppLocale,
+	{
+		excellent: string
+		good: string
+		fair: string
+		needsWork: string
+		poor: string
+	}
 > = {
-  en: {
-    excellent: 'Excellent',
-    good: 'Good',
-    fair: 'Fair',
-    needsWork: 'Needs Work',
-    poor: 'Poor',
-  },
-  ru: {
-    excellent: 'Отлично',
-    good: 'Хорошо',
-    fair: 'Нормально',
-    needsWork: 'Нужно доработать',
-    poor: 'Слабо',
-  },
-  'uz-Latn': {
-    excellent: 'Ajoyib',
-    good: 'Yaxshi',
-    fair: 'Qoniqarli',
-    needsWork: 'Ishlash kerak',
-    poor: 'Sust',
-  },
+	en: {
+		excellent: 'Excellent',
+		good: 'Good',
+		fair: 'Fair',
+		needsWork: 'Needs Work',
+		poor: 'Poor',
+	},
+	ru: {
+		excellent: 'Отлично',
+		good: 'Хорошо',
+		fair: 'Нормально',
+		needsWork: 'Нужно доработать',
+		poor: 'Слабо',
+	},
+	uz: {
+		excellent: 'Ajoyib',
+		good: 'Yaxshi',
+		fair: 'Qoniqarli',
+		needsWork: 'Ishlash kerak',
+		poor: 'Sust',
+	},
 }
 
+const qualityFallbackSuggestions = {
+	missing_task: [
+		{
+			en: 'Clearly state what action you want the AI to perform.',
+			ru: 'Чётко укажите, какое действие должна выполнить модель.',
+			uz: 'Model qanday amal bajarishi kerakligini aniq ayting.',
+		},
+	],
+	missing_topic: [
+		{
+			en: 'Specify the topic or narrow the subject you want covered.',
+			ru: 'Уточните тему или сузьте предмет запроса.',
+			uz: 'Mavzuni aniqlashtiring yoki qamrovni toraytiring.',
+		},
+	],
+	missing_output_format: [
+		{
+			en: 'Specify the format you want (bullets, paragraphs, table, etc.).',
+			ru: 'Уточните желаемый формат ответа: список, абзацы, таблица и т.д.',
+			uz:
+				'Qaysi formatni xohlashingizni ayting: punktlar, paragraflar, jadval va hokazo.',
+		},
+	],
+	missing_audience: [
+		{
+			en: 'State who the answer is for.',
+			ru: 'Укажите, для какой аудитории предназначен ответ.',
+			uz: 'Javob kim uchun mo\'ljallanganini ko\'rsating.',
+		},
+	],
+	missing_goal: [
+		{
+			en: 'Explain why you need this information.',
+			ru: 'Поясните, зачем вам нужна эта информация.',
+			uz: 'Bu ma\'lumot sizga nima uchun kerakligini tushuntiring.',
+		},
+	],
+	missing_constraints: [
+		{
+			en: 'Add constraints such as length or depth.',
+			ru: 'Добавьте ограничения, например по длине или глубине ответа.',
+			uz: 'Uzunlik yoki chuqurlik kabi cheklovlarni qo\'shing.',
+		},
+	],
+	weak_task: [
+		{
+			en: 'Make the task wording more specific and unambiguous.',
+			ru: 'Сделайте формулировку задачи более конкретной и однозначной.',
+			uz: 'Vazifa ifodasini yanada aniq va bir ma\'noli qiling.',
+		},
+	],
+	weak_topic: [
+		{
+			en: 'Narrow the topic to a more specific aspect.',
+			ru: 'Сузьте тему до более конкретного аспекта.',
+			uz: 'Mavzuni aniqroq bir jihatgacha toraytiring.',
+		},
+	],
+} satisfies LocalizedSuggestionMap<QualityIssueCode>
+
+const qualityFallbackNoIssues = {
+	en: 'Your prompt is well-structured!',
+	ru: 'Ваш промпт уже хорошо структурирован.',
+	uz: 'Promptingiz allaqachon yaxshi tuzilgan!',
+} satisfies LocalizedText
+
 function getElementKeyForIssue(code: QualityIssueCode): QualityElementKey {
-  switch (code) {
-    case 'missing_task':
-    case 'weak_task':
-      return 'task'
-    case 'missing_topic':
-    case 'weak_topic':
-      return 'topic'
-    case 'missing_output_format':
-      return 'output_format'
-    case 'missing_audience':
-      return 'audience'
-    case 'missing_goal':
-      return 'goal'
-    case 'missing_constraints':
-      return 'constraints'
-  }
+	switch (code) {
+		case 'missing_task':
+		case 'weak_task':
+			return 'task'
+		case 'missing_topic':
+		case 'weak_topic':
+			return 'topic'
+		case 'missing_output_format':
+			return 'output_format'
+		case 'missing_audience':
+			return 'audience'
+		case 'missing_goal':
+			return 'goal'
+		case 'missing_constraints':
+			return 'constraints'
+	}
 }
 
 function calculateScore(
-  response: QualityResponse,
-  locale: AppLocale
+	response: QualityResponse,
+	locale: AppLocale,
 ): { score: number; label: string } {
-  let deductions = 0
-  
-  // Deduct for missing elements
-  for (const missing of response.missingElements) {
-    const weight = ELEMENT_WEIGHTS[missing] || 10
-    deductions += weight
-  }
-  
-  // Partial deduction for weak elements (issues with medium severity)
-  for (const issue of response.issues) {
-    if (issue.severity === 'medium') {
-      const weight = ELEMENT_WEIGHTS[getElementKeyForIssue(issue.code)]
-      deductions += weight * 0.5
-    }
-  }
-  
-  const score = Math.max(0, Math.round(100 - deductions))
-  const labels = qualityScoreLabels[locale]
-  
-  let label: string
-  if (score >= 90) {
-    label = labels.excellent
-  } else if (score >= 75) {
-    label = labels.good
-  } else if (score >= 50) {
-    label = labels.fair
-  } else if (score >= 25) {
-    label = labels.needsWork
-  } else {
-    label = labels.poor
-  }
-  
-  return { score, label }
+	let deductions = 0
+
+	for (const missing of response.missingElements) {
+		const weight = ELEMENT_WEIGHTS[missing] || 10
+		deductions += weight
+	}
+
+	for (const issue of response.issues) {
+		if (issue.severity === 'medium') {
+			const weight = ELEMENT_WEIGHTS[getElementKeyForIssue(issue.code)]
+			deductions += weight * 0.5
+		}
+	}
+
+	const score = Math.max(0, Math.round(100 - deductions))
+	const labels = qualityScoreLabels[locale]
+
+	let label: string
+	if (score >= 90) {
+		label = labels.excellent
+	} else if (score >= 75) {
+		label = labels.good
+	} else if (score >= 50) {
+		label = labels.fair
+	} else if (score >= 25) {
+		label = labels.needsWork
+	} else {
+		label = labels.poor
+	}
+
+	return { score, label }
 }
 
 const explanations: Record<QualityIssueCode, ExplanationCard> = {
-  missing_task: {
-    title: 'Task is missing or unclear',
-    description: 'Your prompt does not clearly state what action you want the AI to perform.',
-    whyItMatters: 'Without a clear task, the AI may guess incorrectly or provide irrelevant output.',
-    howToFix: 'Start with an action verb: "Write...", "Explain...", "Create...", "Compare..."',
-  },
-  missing_topic: {
-    title: 'Topic is missing or vague',
-    description: 'Your prompt lacks a specific subject or topic.',
-    whyItMatters: 'Vague topics lead to generic, unfocused responses.',
-    howToFix: 'Be specific about what subject matter you want addressed.',
-  },
-  missing_output_format: {
-    title: 'Output format is missing',
-    description: 'Your prompt does not specify how the response should be structured.',
-    whyItMatters: 'Without format guidance, you may get long paragraphs when you wanted bullet points, or vice versa.',
-    howToFix: 'Specify format: "in bullet points", "as a table", "in 3 paragraphs", "step-by-step".',
-  },
-  missing_audience: {
-    title: 'Target audience is missing',
-    description: 'Your prompt does not indicate who the content is for.',
-    whyItMatters: 'Audience determines tone, complexity, and vocabulary of the response.',
-    howToFix: 'Add audience context: "for a beginner", "for a technical audience", "for a 5-year-old".',
-  },
-  missing_goal: {
-    title: 'Goal or purpose is unclear',
-    description: 'Your prompt does not explain why you need this information.',
-    whyItMatters: 'Understanding the goal helps AI provide more relevant and useful responses.',
-    howToFix: 'Add context about your purpose: "for a presentation", "to understand better", "for a blog post".',
-  },
-  missing_constraints: {
-    title: 'Constraints are missing',
-    description: 'Your prompt has no length, depth, or other constraints.',
-    whyItMatters: 'Without constraints, responses may be too long, too short, or inappropriate for your needs.',
-    howToFix: 'Add constraints: word count, number of items, time period, level of detail.',
-  },
-  weak_task: {
-    title: 'Task could be clearer',
-    description: 'Your task is present but could be more specific.',
-    whyItMatters: 'Clearer tasks produce more accurate results.',
-    howToFix: 'Make your action request more specific and unambiguous.',
-  },
-  weak_topic: {
-    title: 'Topic could be more specific',
-    description: 'Your topic is present but broad.',
-    whyItMatters: 'Narrower topics yield more focused, useful responses.',
-    howToFix: 'Narrow down your subject to a specific aspect.',
-  },
+	missing_task: {
+		title: 'Task is missing or unclear',
+		description:
+			'Your prompt does not clearly state what action you want the AI to perform.',
+		whyItMatters:
+			'Without a clear task, the AI may guess incorrectly or provide irrelevant output.',
+		howToFix:
+			'Start with an action verb: "Write...", "Explain...", "Create...", "Compare..."',
+	},
+	missing_topic: {
+		title: 'Topic is missing or vague',
+		description: 'Your prompt lacks a specific subject or topic.',
+		whyItMatters: 'Vague topics lead to generic, unfocused responses.',
+		howToFix: 'Be specific about what subject matter you want addressed.',
+	},
+	missing_output_format: {
+		title: 'Output format is missing',
+		description:
+			'Your prompt does not specify how the response should be structured.',
+		whyItMatters:
+			'Without format guidance, you may get long paragraphs when you wanted bullet points, or vice versa.',
+		howToFix:
+			'Specify format: "in bullet points", "as a table", "in 3 paragraphs", "step-by-step".',
+	},
+	missing_audience: {
+		title: 'Target audience is missing',
+		description: 'Your prompt does not indicate who the content is for.',
+		whyItMatters:
+			'Audience determines tone, complexity, and vocabulary of the response.',
+		howToFix:
+			'Add audience context: "for a beginner", "for a technical audience", "for a 5-year-old".',
+	},
+	missing_goal: {
+		title: 'Goal or purpose is unclear',
+		description: 'Your prompt does not explain why you need this information.',
+		whyItMatters:
+			'Understanding the goal helps AI provide more relevant and useful responses.',
+		howToFix:
+			'Add context about your purpose: "for a presentation", "to understand better", "for a blog post".',
+	},
+	missing_constraints: {
+		title: 'Constraints are missing',
+		description: 'Your prompt has no length, depth, or other constraints.',
+		whyItMatters:
+			'Without constraints, responses may be too long, too short, or inappropriate for your needs.',
+		howToFix:
+			'Add constraints: word count, number of items, time period, level of detail.',
+	},
+	weak_task: {
+		title: 'Task could be clearer',
+		description: 'Your task is present but could be more specific.',
+		whyItMatters: 'Clearer tasks produce more accurate results.',
+		howToFix: 'Make your action request more specific and unambiguous.',
+	},
+	weak_topic: {
+		title: 'Topic could be more specific',
+		description: 'Your topic is present but broad.',
+		whyItMatters: 'Narrower topics yield more focused, useful responses.',
+		howToFix: 'Narrow down your subject to a specific aspect.',
+	},
 }
 
 export const promptQualityEvaluator: Evaluator<
-  QualityResponse,
-  'prompt-quality'
+	QualityResponse,
+	'prompt-quality'
 > = {
-  meta: {
-    id: 'prompt-quality',
-    name: 'Prompt Quality Check',
-    description: 'Evaluate clarity, specificity, and completeness of your prompt.',
-    purpose: 'Improve your prompts to get better, more useful AI responses.',
-    icon: 'Sparkles',
-  },
-  systemPrompt: `You are a prompt quality evaluator.
+	meta: {
+		id: 'prompt-quality',
+		name: 'Prompt Quality Check',
+		description:
+			'Evaluate clarity, specificity, and completeness of your prompt.',
+		purpose: 'Improve your prompts to get better, more useful AI responses.',
+		icon: 'Sparkles',
+	},
+	systemPrompt: `You are a prompt quality evaluator.
 
 Analyze the user's prompt only for clarity, specificity, structure, completeness, and usefulness.
 
@@ -236,78 +320,19 @@ Also provide:
 - concise improvement suggestions
 
 Respond in the same language as the user's prompt when possible.`,
-  responseSchema: qualityResponseSchema,
-  calculateScore,
-  explanations,
-  getSuggestions: (response: QualityResponse, locale: AppLocale) => {
-    if (response.suggestions && response.suggestions.length > 0) {
-      return response.suggestions
-    }
+	responseSchema: qualityResponseSchema,
+	calculateScore,
+	explanations,
+	getSuggestions: (response: QualityResponse, locale: AppLocale) => {
+		if (response.suggestions.length > 0) {
+			return response.suggestions
+		}
 
-    if (locale === 'uz-Latn') {
-      const suggestions: string[] = []
-
-      if (response.missingElements.includes('output_format')) {
-        suggestions.push(
-          'Qaysi formatni xohlashingizni ayting: punktlar, paragraflar, jadval va hokazo.'
-        )
-      }
-      if (response.missingElements.includes('audience')) {
-        suggestions.push('Javob kim uchun mo\'ljallanganini ko\'rsating.')
-      }
-      if (response.missingElements.includes('constraints')) {
-        suggestions.push('Uzunlik yoki chuqurlik kabi cheklovlarni qo\'shing.')
-      }
-      if (response.missingElements.includes('goal')) {
-        suggestions.push('Bu ma\'lumot sizga nima uchun kerakligini tushuntiring.')
-      }
-
-      if (suggestions.length === 0) {
-        suggestions.push('Promptingiz allaqachon yaxshi tuzilgan!')
-      }
-
-      return suggestions
-    }
-    
-    const suggestions: string[] = []
-    
-    if (response.missingElements.includes('output_format')) {
-      suggestions.push(
-        locale === 'ru'
-          ? 'Уточните желаемый формат ответа: список, абзацы, таблица и т.д.'
-          : 'Specify the format you want (bullets, paragraphs, table, etc.).'
-      )
-    }
-    if (response.missingElements.includes('audience')) {
-      suggestions.push(
-        locale === 'ru'
-          ? 'Укажите, для какой аудитории предназначен ответ.'
-          : 'State who the answer is for.'
-      )
-    }
-    if (response.missingElements.includes('constraints')) {
-      suggestions.push(
-        locale === 'ru'
-          ? 'Добавьте ограничения, например по длине или глубине ответа.'
-          : 'Add constraints such as length or depth.'
-      )
-    }
-    if (response.missingElements.includes('goal')) {
-      suggestions.push(
-        locale === 'ru'
-          ? 'Поясните, зачем вам нужна эта информация.'
-          : 'Explain why you need this information.'
-      )
-    }
-    
-    if (suggestions.length === 0) {
-      suggestions.push(
-        locale === 'ru'
-          ? 'Ваш промпт уже хорошо структурирован.'
-          : 'Your prompt is well-structured!'
-      )
-    }
-    
-    return suggestions
-  },
+		return resolveFallbackSuggestions({
+			codes: response.issues.map(issue => issue.code),
+			locale,
+			suggestionsByCode: qualityFallbackSuggestions,
+			fallback: qualityFallbackNoIssues,
+		})
+	},
 }

@@ -1,7 +1,12 @@
-import type { ExplanationCard } from '@/lib/types/common'
 import type { AppLocale } from '@/i18n/locales'
+import type { ExplanationCard } from '@/lib/types/common'
 import { NECESSITY_MODIFIER, SEVERITY_MULTIPLIER } from '@/lib/types/common'
 import { z } from 'zod'
+import {
+	type LocalizedSuggestionMap,
+	type LocalizedText,
+	resolveFallbackSuggestions,
+} from './suggestion-utils'
 import { type Evaluator, type PrivacyResponse } from './types'
 
 export const privacyIssueCodes = [
@@ -79,7 +84,7 @@ const privacyScoreLabels: Record<
 		high: 'Высокий риск',
 		critical: 'Критический риск',
 	},
-	'uz-Latn': {
+	uz: {
 		noRisk: 'Maxfiylik xavfi yo\'q',
 		low: 'Past xavf',
 		moderate: 'O\'rta xavf',
@@ -87,6 +92,76 @@ const privacyScoreLabels: Record<
 		critical: 'Juda yuqori xavf',
 	},
 }
+
+const privacyFallbackSuggestions = {
+	personal_name_exposed: [
+		{
+			en: 'Remove or anonymize personal names.',
+			ru: 'Удалите или анонимизируйте личные имена.',
+			uz: 'Shaxsiy ismlarni olib tashlang yoki anonimlashtiring.',
+		},
+	],
+	organization_exposed: [
+		{
+			en: 'Replace organization names with neutral placeholders.',
+			ru: 'Замените названия организаций нейтральными плейсхолдерами.',
+			uz: 'Tashkilot nomlarini neytral o\'rinbosarlar bilan almashtiring.',
+		},
+	],
+	location_exposed: [
+		{
+			en: 'Use general location descriptions instead of specific places.',
+			ru: 'Используйте общие описания мест вместо конкретных локаций.',
+			uz:
+				'Aniq joy nomlari o\'rniga umumiy joylashuv tavsiflaridan foydalaning.',
+		},
+	],
+	email_exposed: [
+		{
+			en: 'Never include real contact information in prompts.',
+			ru: 'Никогда не указывайте реальные контактные данные в промптах.',
+			uz:
+				'Promptlarda hech qachon haqiqiy aloqa ma\'lumotlarini kiritmang.',
+		},
+	],
+	phone_exposed: [
+		{
+			en: 'Never include real contact information in prompts.',
+			ru: 'Никогда не указывайте реальные контактные данные в промптах.',
+			uz:
+				'Promptlarda hech qachon haqiqiy aloqa ma\'lumotlarini kiritmang.',
+		},
+	],
+	id_number_exposed: [
+		{
+			en: 'Remove all official ID numbers immediately.',
+			ru: 'Немедленно удалите все официальные идентификационные номера.',
+			uz: 'Barcha rasmiy ID raqamlarini darhol olib tashlang.',
+		},
+	],
+	username_exposed: [
+		{
+			en: 'Replace usernames with neutral placeholders or remove them.',
+			ru: 'Замените имена пользователей нейтральными плейсхолдерами или удалите их.',
+			uz:
+				'Foydalanuvchi nomlarini neytral o\'rinbosarlar bilan almashtiring yoki olib tashlang.',
+		},
+	],
+	other_sensitive_exposed: [
+		{
+			en: 'Replace sensitive specifics with neutral placeholders.',
+			ru: 'Замените чувствительные детали нейтральными плейсхолдерами.',
+			uz:
+				'Nozik aniq ma\'lumotlarni neytral o\'rinbosarlar bilan almashtiring.',
+		},
+	],
+} satisfies LocalizedSuggestionMap<PrivacyIssueCode>
+
+const privacyFallbackNoIssues = {
+	en: 'Your prompt appears privacy-safe!',
+	ru: 'Ваш промпт выглядит безопасным с точки зрения приватности.',
+	uz: 'Promptingiz maxfiylik nuqtai nazaridan xavfsiz ko\'rinadi!',
+} satisfies LocalizedText
 
 function calculateScore(response: PrivacyResponse, locale: AppLocale): {
 	score: number
@@ -233,96 +308,15 @@ Respond in the same language as the user's prompt when possible.`,
 	calculateScore,
 	explanations,
 	getSuggestions: (response: PrivacyResponse, locale: AppLocale) => {
-		if (response.suggestions && response.suggestions.length > 0) {
+		if (response.suggestions.length > 0) {
 			return response.suggestions
 		}
 
-		if (locale === 'uz-Latn') {
-			const suggestions: string[] = []
-
-			if (response.issues.some(i => i.code === 'organization_exposed')) {
-				suggestions.push(
-					'Tashkilot nomlarini neytral o\'rinbosarlar bilan almashtiring.',
-				)
-			}
-			if (response.issues.some(i => i.code === 'personal_name_exposed')) {
-				suggestions.push('Shaxsiy ismlarni olib tashlang yoki anonimlashtiring.')
-			}
-			if (response.issues.some(i => i.code === 'location_exposed')) {
-				suggestions.push(
-					'Aniq joy nomlari o\'rniga umumiy joylashuv tavsiflaridan foydalaning.',
-				)
-			}
-			if (
-				response.issues.some(
-					i => i.code === 'email_exposed' || i.code === 'phone_exposed',
-				)
-			) {
-				suggestions.push(
-					'Promptlarda hech qachon haqiqiy aloqa ma\'lumotlarini kiritmang.',
-				)
-			}
-			if (response.issues.some(i => i.code === 'id_number_exposed')) {
-				suggestions.push('Barcha rasmiy ID raqamlarini darhol olib tashlang.')
-			}
-
-			if (suggestions.length === 0) {
-				suggestions.push('Promptingiz maxfiylik nuqtai nazaridan xavfsiz ko\'rinadi!')
-			}
-
-			return suggestions
-		}
-
-		const suggestions: string[] = []
-
-		if (response.issues.some(i => i.code === 'organization_exposed')) {
-			suggestions.push(
-				locale === 'ru'
-					? 'Замените названия организаций нейтральными плейсхолдерами.'
-					: 'Replace organization names with neutral placeholders.',
-			)
-		}
-		if (response.issues.some(i => i.code === 'personal_name_exposed')) {
-			suggestions.push(
-				locale === 'ru'
-					? 'Удалите или анонимизируйте личные имена.'
-					: 'Remove or anonymize personal names.',
-			)
-		}
-		if (response.issues.some(i => i.code === 'location_exposed')) {
-			suggestions.push(
-				locale === 'ru'
-					? 'Используйте общие описания мест вместо конкретных локаций.'
-					: 'Use general location descriptions instead of specific places.',
-			)
-		}
-		if (
-			response.issues.some(
-				i => i.code === 'email_exposed' || i.code === 'phone_exposed',
-			)
-		) {
-			suggestions.push(
-				locale === 'ru'
-					? 'Никогда не указывайте реальные контактные данные в промптах.'
-					: 'Never include real contact information in prompts.',
-			)
-		}
-		if (response.issues.some(i => i.code === 'id_number_exposed')) {
-			suggestions.push(
-				locale === 'ru'
-					? 'Немедленно удалите все официальные идентификационные номера.'
-					: 'Remove all official ID numbers immediately.',
-			)
-		}
-
-		if (suggestions.length === 0) {
-			suggestions.push(
-				locale === 'ru'
-					? 'Ваш промпт выглядит безопасным с точки зрения приватности.'
-					: 'Your prompt appears privacy-safe!',
-			)
-		}
-
-		return suggestions
+		return resolveFallbackSuggestions({
+			codes: response.issues.map(issue => issue.code),
+			locale,
+			suggestionsByCode: privacyFallbackSuggestions,
+			fallback: privacyFallbackNoIssues,
+		})
 	},
 }
