@@ -1,7 +1,5 @@
 'use client'
 
-import { usePathname, useRouter } from '@/i18n/navigation'
-import { locales, type AppLocale } from '@/i18n/locales'
 import {
 	Select,
 	SelectContent,
@@ -9,6 +7,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select'
+import { locales, type AppLocale } from '@/i18n/locales'
+import { usePathname, useRouter } from '@/i18n/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import { useTransition } from 'react'
 
@@ -37,16 +37,19 @@ export function LocaleSwitcher() {
 		>
 			<SelectTrigger
 				size='sm'
-				className='w-auto justify-center gap-0 rounded-lg border-border bg-card px-2.5 text-xs font-medium uppercase [&_svg]:hidden'
+				className='w-10 justify-center gap-0 rounded-lg border-border bg-card px-2.5 text-xs font-medium uppercase [&_svg]:hidden'
 			>
 				<SelectValue />
 			</SelectTrigger>
-			<SelectContent align='center' className='min-w-4'>
+			<SelectContent
+				align='center'
+				className='w-var(--radix-select-trigger-width) min-w-0'
+			>
 				{locales.map(nextLocale => (
 					<SelectItem
 						key={nextLocale}
 						value={nextLocale}
-						className='w-full pr-0 text-center text-xs font-medium uppercase data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground [&>span:first-child]:hidden [&>span:last-child]:w-full [&>span:last-child]:justify-center'
+						className='min-w-0 justify-center px-2 pr-2 text-xs font-medium uppercase data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground [&>span:first-child]:hidden [&>span:last-child]:w-full [&>span:last-child]:justify-center'
 					>
 						{t(nextLocale)}
 					</SelectItem>

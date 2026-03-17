@@ -1,34 +1,39 @@
-import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
-import { getLocale } from 'next-intl/server'
-import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
+import type { Metadata } from 'next'
+import {
+	IBM_Plex_Mono,
+	Lora,
+	Poppins,
+} from 'next/font/google'
+import { getLocale } from 'next-intl/server'
+import { ThemeProvider } from 'next-themes'
+import './globals.css'
 
-const _geist = Geist({ subsets: ['latin'] })
-const _geistMono = Geist_Mono({ subsets: ['latin'] })
+const fontSans = Poppins({
+	subsets: ['latin'],
+	weight: ['400', '500', '600', '700'],
+	variable: '--font-sans',
+})
+
+const fontSerif = Lora({
+	subsets: ['latin'],
+	variable: '--font-serif',
+})
+
+const fontMono = IBM_Plex_Mono({
+	subsets: ['latin'],
+	weight: ['400', '500', '600', '700'],
+	variable: '--font-mono',
+})
 
 export const metadata: Metadata = {
 	title: 'Prompt X-Ray | Multi-Mode Prompt Evaluation',
 	description:
 		'Analyze your AI prompts for privacy issues, academic integrity, and quality before sending them.',
-	generator: 'v0.app',
 	icons: {
-		icon: [
-			{
-				url: '/icon-light-32x32.png',
-				media: '(prefers-color-scheme: light)',
-			},
-			{
-				url: '/icon-dark-32x32.png',
-				media: '(prefers-color-scheme: dark)',
-			},
-			{
-				url: '/icon.svg',
-				type: 'image/svg+xml',
-			},
-		],
-		apple: '/apple-icon.png',
+		icon: '/icon.svg',
+		shortcut: '/icon.svg',
+		apple: '/apple-icon.svg',
 	},
 }
 
@@ -40,11 +45,14 @@ export default async function RootLayout({
 	const locale = await getLocale()
 
 	return (
-		<html lang={locale}>
-			<body className='font-sans antialiased'>
-				{children}
-				<Toaster />
-				<Analytics />
+		<html lang={locale} suppressHydrationWarning>
+			<body
+				className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} font-sans antialiased`}
+			>
+				<ThemeProvider attribute='class' defaultTheme='system' enableSystem>
+					{children}
+					<Toaster />
+				</ThemeProvider>
 			</body>
 		</html>
 	)
